@@ -10,6 +10,8 @@
  |          |     |
 
 */
+#include "basicTemplateSim.h"
+
 
 /* runtime include files */
 #include <stdio.h>
@@ -17,33 +19,9 @@
 #include <string.h>
 #include <math.h>
 
-
-/////////////////////// definition de l'environnement
-#ifdef __unix__
-	#define SIMULATION
-	#define DEBUG_OUTPUT
-#elif defined _WIN32 || _WIN64
-	#define SIMULATION
-	#define DEBUG_OUTPUT
-#endif
-
-
-/////////////////////// fonctions de debuggage: save_image
-#ifdef DEBUG_OUTPUT
-	char titre[256];
-	int numero_test=0;
-	#define SAVE_IMAGE_NB(im) numero_test++; \
-							sprintf(titre, "test_%03d-NB.tif", numero_test);\
-							save_image(im, im, im, titre);
-	#define SAVE_IMAGE_COULEUR(R, G, B) numero_test++; \
-							sprintf(titre, "test_%03d-COUL.tif", numero_test);\
-							save_image(R, G, B, titre);
-#else
-	#define SAVE_IMAGE_NB(im)
-	#define SAVE_IMAGE_COULEUR(R, G, B)
-#endif
-
-
+/////////////////////// librairies pour le debuggage, chargement et sauvegarde image
+#define MAIN
+#include "debug.h"
 
 /////////////////////// Librairies necesaires à la carte DSP
 #ifndef SIMULATION
@@ -61,55 +39,18 @@
 /////////////////////// Librairies accessoires 
 /* Application include files */
 #include "dsp_types.h"
-#include "basicTemplateSim.h"
-
 #include "mask.h"
 #include "histogram.h"
-
-/////////////////////// librairies pour le debuggage, chargement et sauvegarde image
-#ifdef SIMULATION
-#include "image_param.h"
-#include "images_amoi.h"
-#endif
+#include "houghTransform.h"
+#include "color.h"
+#include "circlePlot.h"
 
 
 
-/////////////////////// 
-/////////////////////// 
-/////////////////////// Fin des dirrectives de préprocesseur
-/////////////////////// 
-/////////////////////// 
+#include "linePlot.h"
 
-// affectation memoires: images
-uint8 f[H][W];
-uint8 g[H][W];
-uint8 h[H][W];
-uint8 i[H][W];
 
-uint8 R[H][W];
-uint8 G[H][W];
-uint8 B[H][W];
 
-// création d'un système à 16 couleurs
-//					  R  G  B
-uint8 couleur[16][3]={ 
-	{0x00, 0x00, 0xFF}, //blue bleu
-	{0x00, 0xFF, 0x00}, //lime vert citron
-	{0x80, 0x00, 0x80}, //purple violet
-	{0xFF, 0xFF, 0xFF}, //white blanc
-	{0xFF, 0x00, 0xFF}, //fuchsia / magenta fuchsia (couleur), //fuchsia
-	{0x80, 0x00, 0x00}, //maroon Bordeaux (couleur), //bordeaux
-	{0xFF, 0x00, 0x00}, //red rouge
-	{0xFF, 0xFF, 0x00}, //yellow jaune
-	{0x00, 0xFF, 0xFF}, //aqua / cyan vert d'eau, //bleu-vert eau
-	{0x00, 0x80, 0x00}, //green vert
-	{0x00, 0x00, 0x80}, //navy bleu marine
-	{0xc0, 0xc0, 0xc0}, //silver argent (couleur), //argent
-	{0x00, 0x00, 0x00}, //black noir
-	{0x80, 0x80, 0x80}, //gray gris
-	{0x80, 0x80, 0x00}, //olive olive (couleur), //jaune olive
-	{0x00, 0x80, 0x80}, //teal sarcelle (couleur), //sarcelle
-};
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -128,70 +69,219 @@ void main(void) {
 	return;
 }
 
+
+// allocation de la mémoire
+
+
+
+#define W_lena 256
+#define H_lena 256
+
+#define W_loto 360
+#define H_loto 250
+
+
+int W = W_lena;
+int H = H_lena;
+uint8 f[W_lena*H_lena]={0};
+uint8 g[W_lena*H_lena]={0};
+uint8 h[W_lena*H_lena]={0};
+uint8 R[W_lena*H_lena]={0};
+uint8 G[W_lena*H_lena]={0};
+uint8 B[W_lena*H_lena]={0};
+//uint8 z[W_lena*H_lena]={0};
+//uint8 q[W_lena*H_lena]={0};
+//uint8 r[W_lena*H_lena]={0};
+
+uint32 houghSpace_circle[W_lena*H_lena]={0};
+IMAGE hough_circle={4, W_lena, H_lena, (uint8*) houghSpace_circle};
+
+
 void processingTask(void)
 {
-	//MASQUE median = {filtre_erosion,{0}, MASK_croix3, 1};
-
-	//filtre : contraste 	-1, -4, -1, -4, 26, -4, -1, -4, -1
-			// vertical 	1, 2, 1, 0, 0, 0, -1, -2, -1
-			// horizontal 	1, 0, -1, 2, 0, -2, 1, 0, -1
-			// vert+horiz	2, 4, 2, 4, 8, 4, 2, 4, 2
 
 
-	//traitementImage(f, g, &median);
+	INIT_IMAGE(f, W, H);
+	INIT_IMAGE(g, W, H);
+	INIT_IMAGE(h, W, H);
+	INIT_IMAGE(R, W, H);
+	INIT_IMAGE(G, W, H);
+	INIT_IMAGE(B, W, H);
 
-	
-	//load_image(f, "lena256x256.dat");
-	
-	//SAVE_IMAGE_NB(f);
-	
-	//HISTOGRAM hist;
-	//calculHistogram(f, hist);
-	//traceHistogram(hist, "fichier.tif");
-	
-	
-	
-	
-	
-	load_image(f, "form-1.dat");
-	
-	SAVE_IMAGE_NB(f);
+	LOAD_IMAGE(&imf, "lena256x256.dat");
 
-	MASQUE masque = {filtre_erosion, {0}, MASK_carre9, 1};
-	traitementImage(f, g, &masque);
+	// detourage
+	MASQUE sobel1=SOBEL_Hori(W_lena);
+	MASQUE sobel2=SOBEL_Vert(W_lena);
+	MASQUE ero3={filtre_erosion,{0}, MASK_croix3(W), 1};
 	
-	SAVE_IMAGE_NB(g);
-
-
-	maskInverse(&masque); //erosion devient dilatation et le mask est inversé
+	filtreImage(&imf, &img, &sobel1);
+	filtreImage(&imf, &imh, &sobel2);
 	
-	setImage(f, 0);//effacement image f (
-	traitementImage(g, f, &masque);
+	divImage(&img, 2);
+	divImage(&imh, 2);
+	
+	addImage(&img, &imh, &imf, 1, 1);
+	
+	
+	//filtreImage(&imf, &img, &ero3);
+	
+	
+	
+	//copyImage(&img, &imf);
+	
+	
 
-	SAVE_IMAGE_NB(f);
-
-	float graviteX=0;
-	float graviteY=0;
-	unsigned long poid;
-	int numobj=0;
-	do{// boucle sur tous les objets
-		numobj++;
-		poid = detectObj(f, g, h, &graviteX, &graviteY);
+	plotCircle(&imf, 50, 50, 30, 255);
+	
+	
+	plotLine(&imf, -10, -45);
+	
+	plotLine(&imf, 40, 0);
+	
+	plotLine(&imf, -40, -90);
+	plotLine(&imf, -50, -80);
+	
+	
+	
+	copyImage(&imf, &img);
+	setImage(&imh, 0);
+	setImage(&img, 0);
+	
+	//DEBUG_IMAGE_NB(&imf);
+	
+	//LOAD_IMAGE(&imf, "lena256x256.dat");
+	//LOAD_IMAGE(&img, "lena256x256.dat");
+	
+	
+	//LOAD_IMAGE(f, "lena256x256.dat");
+	DEBUG_IMAGE_NB(&imf);
+	
+	
+	#define t 10
+	int xs[t]={0};
+	int ys[t]={0};
+	
+	int thetas[t]={0};
+	int rhos[t]={0};
+	
+	lookforcircles(&imf, &img, 1, 30, xs, ys);
+	
+	lookforlines(&imf, &img, 4, thetas, rhos);
+	
+	int i;
+	for(i=0;i<t; i++){
 		
-		if(poid>0){ //affichage du rapport dans la console
-			printf("Element n° %2d \t poid: %ldpx \t X: %f\t Y: %f\n",
-					numobj, 
-					poid/255, 
-					graviteX, 
-					graviteY);
-					SAVE_IMAGE_COULEUR(f, g, g);
-					
-					// affectation de la couleur sur tous les points de g, et addition sur RGB
-					coloriseImage(g, R, G, B, couleur[numobj-1]); 
-		}
-	}while(poid);
+		printf("ligne n %2d: theta = %4d, rho = %4d\n", i, thetas[i], rhos[i]);
+	}
+	for(i=0;i<t; i++){
+		
+		printf("cercle n %2d: X = %4d, Y = %4d\n", i, xs[i], ys[i]);
+	}
 	
-	SAVE_IMAGE_COULEUR(R, G, B);
+	
+	
+	
+	//addImage(&imf, &img, &imf, 1, 1);
+	DEBUG_IMAGE_COULEUR(&imf, &img, &imf);
+	
+	
+	//printf("\nhough_line\t%d"
+
+	/*
+	MASQUE sobel1=SOBEL_Hori(W_lena);
+	MASQUE sobel2=SOBEL_Vert(W_lena);
+
+	
+	filtreImage(&imf, &img, &sobel1);
+	filtreImage(&imf, &imh, &sobel2);
+	addImage(&img, &imh, &imh, 1, 1);
+	DEBUG_IMAGE_NB(&imh);
+	
+	filtreImage(&imf, &img, &sobel1);
+	
+	DEBUG_IMAGE_NB(&img);
+	
+	
+	filtreImage(&imf, &img, &sobel2);
+	
+	DEBUG_IMAGE_NB(&img);
+	*/
+	
+	
+	
+	///////////////////////////////////////////////////////////////7
+	
+	// loto
+	
+	/*
+	LOAD_IMAGE(&imf, "form-1.dat");
+	DEBUG_IMAGE_NB(&imf);
+	
+	MASQUE masque = {filtre_erosion, {0}, MASK_carre9(W_lena), 1};
+	filtreImage(&imf, &img, &masque);
+	
+	DEBUG_IMAGE_NB(&img);
+
+
+	maskInverse(&masque); //érosion devient dilatation et le mask est inversé
+	
+	setImage(&imf, 0);//effacement image f (pour eviter les effets des bords de l'image)
+	
+	filtreImage(&img, &imf, &masque);
+
+	DEBUG_IMAGE_NB(&imf);
+
+
+
+	
+	float 			gravX[255]	= {0};
+	float 			gravY[255]	= {0};
+	unsigned long 	poid[255]	= {0};
+	detectAllObj(&imf, &img, &imh, &imi, gravX, gravY, poid);
+	
+	
+	//int numobj=0;
+	//printf("%d\n", poid[numobj]);
+	//while(poid[numobj]){
+		//printf("Element n %2d \t poid: %ld px \t X: %f\t Y: %f\n",
+			//numobj, 
+			//poid[numobj]/255, 
+			//gravX[numobj], 
+			//gravY[numobj]);
+		//numobj++;
+	//}
+	
+	//coloriseImage(&imi, &imR, &imG, &imB, couleur); 
+	//DEBUG_IMAGE_COULEUR(&imR, &imG, &imB);
+	
+	
+	
+	
+	////////////////////////////////////////////////////////// 
+	
+	//Lena
+	
+	
+	//LOAD_IMAGE(&imz, "lena256x256.dat");
+	//DEBUG_IMAGE_NB(&imz)
+	//HISTOGRAM hist={0};
+	//calculHistogram(&imz, hist);
+	//DEBUG_HIST(hist);
+	//MASQUE sobel1=SOBEL_Hori(256);
+	//MASQUE sobel2=SOBEL_Vert(256);
+	
+	
+	
+	//filtreImage(&imz, &imq, &sobel1);
+	//filtreImage(&imz, &imr, &sobel2);
+	//DEBUG_IMAGE_NB(&imq)
+	//DEBUG_IMAGE_NB(&imr)
+	//addImage(&imq, &imr, &imr, 1, 1);
+	//DEBUG_IMAGE_NB(&imr)
+	
+	*/
+	
 	
 
 	printf("Programme fini\n");

@@ -2,13 +2,12 @@
 #include <stdlib.h>
 
 #include "image_param.h"
-#include "minitifRGB.h"
+#include "../minitifRGB.h"
 
-void load_image(uint8_t f[][W], 
+void load_image(IMAGE *imf, 
 				char *file_name);
 
-void save_image(uint8_t R[][W], 
-				uint8_t G[][W], 
-				uint8_t B[][W], 
+void save_image(IMAGE *R, 
+				IMAGE *G, 
+				IMAGE *B, 
 				char *file_name);
-

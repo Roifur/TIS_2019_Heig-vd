@@ -1,0 +1,61 @@
+BASIC TEMPLATE FOR SIMULATION
+Bien lus!
+          linePlot.c  L 24 MSG tentative de division par 0
+          linePlot.c  L 24 MSG tentative de division par 0
+          linePlot.c  L 36 MSG tentative de division par 0
+          linePlot.c  L 36 MSG tentative de division par 0
+  basicTemplateSim.c  L 158 MSG test_001-NB.tif
+    houghTransform.c  L 114 MSG test_002-HOUGH.tif
+    houghTransform.c  L 139 MSG 
+    houghTransform.c  L 140 MSG Cercle Trouvé!
+    houghTransform.c  L 141 VAR (x_max) 50
+    houghTransform.c  L 142 VAR (y_max) 50
+    houghTransform.c  L 143 MSG test_003-NB.tif
+    houghTransform.c  L 63 MSG test_004-HOUGH.tif
+    houghTransform.c  L 64 FLG
+          linePlot.c  L 36 MSG tentative de division par 0
+          linePlot.c  L 36 MSG tentative de division par 0
+    houghTransform.c  L 87 MSG 
+    houghTransform.c  L 88 MSG Ligne Trouvée!
+    houghTransform.c  L 89 VAR (rho_max+houghRhoMin) -40
+    houghTransform.c  L 90 VAR (theta_max+houghThetaMin) -90
+    houghTransform.c  L 91 MSG test_005-NB.tif
+          linePlot.c  L 24 MSG tentative de division par 0
+          linePlot.c  L 24 MSG tentative de division par 0
+    houghTransform.c  L 87 MSG 
+    houghTransform.c  L 88 MSG Ligne Trouvée!
+    houghTransform.c  L 89 VAR (rho_max+houghRhoMin) 40
+    houghTransform.c  L 90 VAR (theta_max+houghThetaMin) 0
+    houghTransform.c  L 91 MSG test_006-NB.tif
+    houghTransform.c  L 87 MSG 
+    houghTransform.c  L 88 MSG Ligne Trouvée!
+    houghTransform.c  L 89 VAR (rho_max+houghRhoMin) -9
+    houghTransform.c  L 90 VAR (theta_max+houghThetaMin) -45
+    houghTransform.c  L 91 MSG test_007-NB.tif
+    houghTransform.c  L 87 MSG 
+    houghTransform.c  L 88 MSG Ligne Trouvée!
+    houghTransform.c  L 89 VAR (rho_max+houghRhoMin) -49
+    houghTransform.c  L 90 VAR (theta_max+houghThetaMin) -80
+    houghTransform.c  L 91 MSG test_008-NB.tif
+ligne n  0: theta =  -90, rho =  -40
+ligne n  1: theta =    0, rho =   40
+ligne n  2: theta =  -45, rho =   -9
+ligne n  3: theta =  -80, rho =  -49
+ligne n  4: theta =    0, rho =    0
+ligne n  5: theta =    0, rho =    0
+ligne n  6: theta =    0, rho =    0
+ligne n  7: theta =    0, rho =    0
+ligne n  8: theta =    0, rho =    0
+ligne n  9: theta =    0, rho =    0
+cercle n  0: X =   50, Y =   50
+cercle n  1: X =    0, Y =    0
+cercle n  2: X =    0, Y =    0
+cercle n  3: X =    0, Y =    0
+cercle n  4: X =    0, Y =    0
+cercle n  5: X =    0, Y =    0
+cercle n  6: X =    0, Y =    0
+cercle n  7: X =    0, Y =    0
+cercle n  8: X =    0, Y =    0
+cercle n  9: X =    0, Y =    0
+  basicTemplateSim.c  L 186 MSG test_009-COUL.tif
+Programme fini
